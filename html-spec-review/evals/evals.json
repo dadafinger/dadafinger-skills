@@ -1,0 +1,50 @@
+{
+  "skill_name": "html-spec-review",
+  "evals": [
+    {
+      "id": 0,
+      "name": "triage-discrepancies",
+      "prompt": "알람 생성 화면 프로토타입(html)이랑 기획서(md)가 서로 맞는지 검수해줘. 프로토타입 html: /Users/kimsoyoung/proprium/agent-shared/skills/html-spec-review-workspace/fixtures/build_messy.html · 기획서 md: /Users/kimsoyoung/proprium/agent-shared/skills/html-spec-review-workspace/fixtures/spec.md · 다른 데가 있으면 어디가 어떻게 다른지 알려줘. 파일은 고치지 말고 차이만 정리해줘.",
+      "expected_output": "트리아지 리포트: 번들 html을 디코드해 실제 빌드 코드를 꺼내고, MD 주장과 1:1 대조해 불일치 4건(수신자별→그룹별 심각도, 액션유예 '통보하지 않습니다'↔'1건만 통보', Step2 라벨 '대응·통보'↔'액션·권장 대응 설정', §3 상태조건 안내배너 MD엔 있고 빌드엔 없음)을 근거 인용과 함께 제시. 파일 수정 안 함.",
+      "files": [],
+      "expectations": [
+        "report.md 산출물이 생성되었다",
+        "번들 html을 디코드해 실제 빌드 JSX 코드를 근거로 확인했다(추측이 아니라 코드 기반)",
+        "불일치 식별: 빌드 '수신자별 심각도' vs 기획서 '그룹별 심각도'",
+        "불일치 식별: 액션 유예 안내문구 '통보하지 않습니다' vs '1건만 통보'",
+        "불일치 식별: Step2 라벨 '대응 · 통보' vs '액션 · 권장 대응 설정'",
+        "불일치 식별: 기획서 §3 상태조건 안내 배너가 빌드에 없음",
+        "입력 픽스처(build_messy.html)를 수정하지 않았다"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "safe-patch",
+      "prompt": "이 알람 생성 프로토타입 html을 기획서에 맞춰 고쳐줘 — 화면 코드의 '수신자별 심각도'를 '그룹별 심각도'로, 액션 유예 안내문구 '통보하지 않습니다'를 '1건만 통보합니다. 발생 횟수는 발생 빈도(최소 단위) 기준으로 카운트됩니다.'로 바꿔줘. 안전하게(백업하고 babel 검증해서). 원본은 건드리지 말고 출력 폴더에 복사본을 만들어 거기에 반영해줘. html: /Users/kimsoyoung/proprium/agent-shared/skills/html-spec-review-workspace/fixtures/build_for_patch.html",
+      "expected_output": "출력 폴더의 html 복사본에 두 문구가 반영됨('그룹별 심각도'·'1건만 통보' 존재, '수신자별 심각도'·'통보하지 않습니다' 소멸). 백업 파일 생성. babel 문법검증 + 라운드트립 통과. 번들 매니페스트가 깨지지 않고 다시 디코드 가능.",
+      "files": [],
+      "expectations": [
+        "출력 폴더에 패치된 html 복사본이 존재한다",
+        "복사본 디코드 시 '그룹별 심각도'가 있고 '수신자별 심각도'는 사라졌다",
+        "복사본 디코드 시 '1건만 통보'가 있고 '통보하지 않습니다'는 사라졌다",
+        "백업 파일이 생성되었다",
+        "패치된 번들 매니페스트가 유효하다(다시 디코드/JSON 파싱 가능)",
+        "원본 픽스처 build_for_patch.html은 수정되지 않았다"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "footgun-fork",
+      "prompt": "알람 생성 화면 작업 파일이 /Users/kimsoyoung/proprium/.alarm_v7_work 에 여러 벌 있어(jsx_4________v6_2.jsx, jsx_4________v7_DEPLOYED.jsx 등). 거기 do_repack.py 를 돌려서 라이브 html(/Users/kimsoyoung/Library/CloudStorage/[internal-path-removed]",
+      "expected_output": "do_repack.py가 override_safe='4________v6'로 구버전 jsx_4________v6_2.jsx(변경분 누락·섹션번호 어긋남)를 읽으므로 실행 시 라이브가 퇴행할 위험을 경고. jsx_4________v7_DEPLOYED.jsx는 라이브와 포크된 변종임을 식별. 정본 = 라이브 html에서 디코드한 내용. repack 실행 안 함.",
+      "files": [],
+      "expectations": [
+        "report.md 산출물이 생성되었다",
+        "do_repack.py가 구버전 jsx_4________v6_2.jsx를 읽는다는 점을 식별했다",
+        "do_repack.py 실행 시 라이브 html 퇴행 위험을 경고했다",
+        "정본은 라이브 html 디코드본이라고 결론(작업폴더 파일을 정본으로 단정하지 않음)",
+        "실제로 repack을 실행하지 않았다(파일 변경 없음)"
+      ]
+    }
+  ]
+}

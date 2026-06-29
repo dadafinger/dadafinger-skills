@@ -1,0 +1,131 @@
+# dadafinger-skills
+
+> 이 파일은 자동 생성됩니다 — 직접 편집하지 마세요. `python3 scripts/build_visual.py` 로 갱신.
+> 카탈로그: [INDEX.md](INDEX.md)
+> Scope: `[G:General]` 공유 가능 · `[I:Internal]` 사내 특수(일반화됨) · `[S:Sensitive]` export 제외
+
+> 공유용 export · Sensitive 제외
+
+**총 20개 스킬** · 3개 그룹 · 갱신 2026-06-30
+
+## 스킬 맵
+
+> **포맷**: [Mermaid](https://mermaid.js.org/) `flowchart` — GitLab·GitHub README에서 자동 렌더. 노드 = 스킬명 + 역할(명사형) + Scope. 점선 = 참조·연계, 실선 = 파이프라인 순서.
+
+```mermaid
+flowchart TB
+  subgraph G1["1. 기획 파이프라인 (Planning pipeline)"]
+    direction TB
+    planning_flow["planning-flow\n기획 파이프라인 실행·분기·컨펌 오케스트레이터\n(Internal)"]
+    planning_md["planning-md\nspec md 신규·수정(명세서 템플릿 기반)\n(Internal)"]
+    planning_html["planning-html\nspec md → 공통템플릿 HTML 렌더\n(Internal)"]
+    planning_figma["planning-figma\nhtml/md → Figma 3단 프레임 신규 생성\n(Internal)"]
+    figma_change_flow["figma-change-flow\n기존 Figma 노드 수정·반영\n(Internal)"]
+    figma_desc_spec["figma-desc-spec\nDescription 본문 표준(WHAT·전수 서술)\n(Internal)"]
+    doc_collect["doc-collect\n기획 준비물·관련 문서 수집\n(General)"]
+    benchmark_research["benchmark-research\n리서치 폴더 벤치마킹 MD 생성\n(General)"]
+    ia_structure_update["ia-structure-update\nIA 메뉴구조도 xlsx 반영\n(Internal)"]
+  end
+  subgraph G2["2. 검수 / 리뷰 (Review)"]
+    direction TB
+    figma_spec_review["figma-spec-review\nFigma 상세 명세 포맷 검수(읽기전용)\n(Internal)"]
+    html_spec_review["html-spec-review\nhtml 번들 ↔ md 정합·안전 패치\n(Internal)"]
+    status_state_change_review["status-state-change-review\n상태값·색상 변경안 검토\n(Internal)"]
+    critique_reviewer["critique-reviewer\n산출물 비판·약점·리스크 분석\n(General)"]
+  end
+  subgraph G3["3. 매뉴얼 / 문서 (Manual & docs)"]
+    direction TB
+    kr_manual_change_tracker["kr-manual-change-tracker\n매뉴얼 변경 원장·커버리지 검증\n(Internal)"]
+    kr_manual_format_review["kr-manual-format-review\n한글 매뉴얼 서식 검수\n(Internal)"]
+    kr_manual_quickguide["kr-manual-quickguide\n퀵가이드 캡처 목록·링크 삽입\n(Internal)"]
+    en_manual_wash["en-manual-wash\n영문 매뉴얼 OpenStack 기준 워싱\n(General)"]
+    openstack_glossary_en["openstack-glossary-en\nOpenStack 용어집 영문 열 채우기\n(General)"]
+    manual_image_review["manual-image-review\n매뉴얼 캡처 OCR·이미지 검수\n(General)"]
+    jp_capture_text_consistency["jp-capture-text-consistency\n일본어 캡처 텍스트 정합\n(General)"]
+  end
+  planning_flow --> planning_md
+  planning_md --> planning_html
+  planning_html --> planning_figma
+  figma_change_flow -. "내용 표준" .-> figma_desc_spec
+  openstack_glossary_en -. "용어 기준" .-> en_manual_wash
+  en_manual_wash -. "워싱 후" .-> manual_image_review
+  classDef c0 fill:#e8f0fe,stroke:#4285f4,color:#111;
+  class planning_flow,planning_md,planning_html,planning_figma,figma_change_flow,figma_desc_spec,doc_collect,benchmark_research,ia_structure_update c0;
+  classDef c1 fill:#fef3e0,stroke:#f9a825,color:#111;
+  class figma_spec_review,html_spec_review,status_state_change_review,critique_reviewer c1;
+  classDef c2 fill:#e6f4ea,stroke:#34a853,color:#111;
+  class kr_manual_change_tracker,kr_manual_format_review,kr_manual_quickguide,en_manual_wash,openstack_glossary_en,manual_image_review,jp_capture_text_consistency c2;
+```
+
+## 그룹별 스킬
+
+### 1. 기획 파이프라인 (Planning pipeline)
+- **planning-flow** `[I:Internal]` `caution`
+  - 역할: 기획 파이프라인 실행·분기·컨펌 오케스트레이터
+  - 참고: SKILL.md
+- **planning-md** `[I:Internal]` `caution`
+  - 역할: spec md 신규·수정(명세서 템플릿 기반)
+  - 참고: SKILL.md
+- **planning-html** `[I:Internal]` `caution`
+  - 역할: spec md → 공통템플릿 HTML 렌더
+  - 참고: SKILL.md
+- **planning-figma** `[I:Internal]` `caution`
+  - 역할: html/md → Figma 3단 프레임 신규 생성
+  - 참고: SKILL.md
+- **figma-change-flow** `[I:Internal]` `caution`
+  - 역할: 기존 Figma 노드 수정·반영
+  - 참고: SKILL.md
+- **figma-desc-spec** `[I:Internal]` `caution`
+  - 역할: Description 본문 표준(WHAT·전수 서술)
+  - 참고: SKILL.md
+- **doc-collect** `[G:General]` `share`
+  - 역할: 기획 준비물·관련 문서 수집
+  - 참고: SKILL.md
+- **benchmark-research** `[G:General]` `share`
+  - 역할: 리서치 폴더 벤치마킹 MD 생성
+  - 참고: SKILL.md
+- **ia-structure-update** `[I:Internal]` `caution`
+  - 역할: IA 메뉴구조도 xlsx 반영
+  - 참고: SKILL.md
+
+### 2. 검수 / 리뷰 (Review)
+- **figma-spec-review** `[I:Internal]` `caution`
+  - 역할: Figma 상세 명세 포맷 검수(읽기전용)
+  - 참고: SKILL.md
+- **html-spec-review** `[I:Internal]` `caution`
+  - 역할: html 번들 ↔ md 정합·안전 패치
+  - 참고: SKILL.md
+- **status-state-change-review** `[I:Internal]` `caution`
+  - 역할: 상태값·색상 변경안 검토
+  - 참고: SKILL.md
+- **critique-reviewer** `[G:General]` `share`
+  - 역할: 산출물 비판·약점·리스크 분석
+  - 참고: SKILL.md
+
+### 3. 매뉴얼 / 문서 (Manual & docs)
+- **kr-manual-change-tracker** `[I:Internal]` `caution`
+  - 역할: 매뉴얼 변경 원장·커버리지 검증
+  - 참고: SKILL.md
+- **kr-manual-format-review** `[I:Internal]` `caution`
+  - 역할: 한글 매뉴얼 서식 검수
+  - 참고: SKILL.md
+- **kr-manual-quickguide** `[I:Internal]` `caution`
+  - 역할: 퀵가이드 캡처 목록·링크 삽입
+  - 참고: SKILL.md
+- **en-manual-wash** `[G:General]` `share`
+  - 역할: 영문 매뉴얼 OpenStack 기준 워싱
+  - 참고: SKILL.md
+- **openstack-glossary-en** `[G:General]` `share`
+  - 역할: OpenStack 용어집 영문 열 채우기
+  - 참고: SKILL.md
+- **manual-image-review** `[G:General]` `share`
+  - 역할: 매뉴얼 캡처 OCR·이미지 검수
+  - 참고: SKILL.md
+- **jp-capture-text-consistency** `[G:General]` `share`
+  - 역할: 일본어 캡처 텍스트 정합
+  - 참고: SKILL.md
+
+## 공유 안내
+- **General**: 범용 방법론 — 그대로 참고 가능
+- **Internal**: 사내 기획 특수 요구 — 이름·식별자는 일반화됨
+

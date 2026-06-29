@@ -1,0 +1,235 @@
+/* ============================================================
+   공통 스타일 — Product HTML 기획서
+   tokens.css 를 먼저 로드할 것. 모든 값은 토큰 변수로만 분기 →
+   data-theme 만 바꾸면 Hi-fi / Wireframe 자동 전환.
+   ============================================================ */
+
+*{ box-sizing:border-box; }
+html,body{ margin:0; padding:0; }
+body{
+  font-family:var(--font-ui);
+  background:var(--c-canvas);
+  color:var(--c-text);
+  font-size:var(--fs-base);
+  line-height:var(--lh-base);
+  -webkit-font-smoothing:antialiased;
+  word-break:keep-all;
+}
+button{ font-family:inherit; cursor:pointer; }
+.tnum{ font-variant-numeric:tabular-nums; }
+
+/* ============================================================
+   본문영역 (BODY) — Figma 1440px 본문 프레임에 들어가는 화면.
+   상단 메타 헤더(Screen ID/Title/Author)와 우측 Description 은
+   Figma 프레임이 제공하므로 여기서 그리지 않는다.
+   ============================================================ */
+.screen{
+  width:var(--canvas-w);     /* 본문 캔버스 1440px 고정 */
+  margin:24px auto;
+  background:var(--c-surface);
+  border:var(--canvas-border);
+  padding:14px 16px 28px;
+}
+.screen-head{ display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:var(--sp-5); flex-wrap:wrap; }
+.screen-head h1{ font-size:var(--fs-h1); font-weight:800; margin:0; letter-spacing:-.01em; }
+.screen-actions{ display:flex; gap:8px; }
+.screen-body{ display:flex; flex-direction:column; gap:var(--sp-4); padding-left:26px; }
+
+/* 영역 블록 + 좌측 거터 번호(Description 의 1·2·3 과 연결) */
+.area{ position:relative; }
+.area > .area-no{ position:absolute; left:-26px; top:0; }
+
+/* ============================================================
+   (standalone 전용) 아래 .canvas / .topbar / .info-banner 는
+   Figma 프레임 없이 독립 HTML 로 뽑을 때만 사용.
+   본문영역 산출물에는 사용하지 않는다.
+   ============================================================ */
+.canvas{
+  width:var(--canvas-w);
+  margin:24px auto;
+  background:var(--c-surface);
+  border:var(--canvas-border);
+}
+
+/* topbar (breadcrumb + 버전태그 + 사용자) */
+.topbar{
+  min-height:var(--topbar-h);
+  background:var(--c-head);
+  border-bottom:var(--bd-w) solid var(--bd-color);
+  display:flex; align-items:center; justify-content:space-between;
+  gap:18px; padding:9px 16px;
+}
+.crumb{ font-size:var(--fs-sm); color:var(--c-text-3); }
+.crumb b{ color:var(--c-text); font-weight:700; }
+.topbar .meta{ display:flex; align-items:center; gap:10px; font-size:var(--fs-sm); color:var(--c-text-2); }
+.ver-tag{
+  display:inline-flex; align-items:center; padding:2px 8px;
+  border:1px solid var(--c-border-strong); border-radius:var(--radius-pill);
+  background:var(--c-bg); font-size:var(--fs-xs); color:var(--c-text-2); white-space:nowrap;
+}
+
+/* ---------------- body / 섹션 ---------------- */
+.body{ padding:14px 16px 28px; display:flex; flex-direction:column; gap:var(--sp-4); }
+
+/* page head */
+.page-h{ display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+.page-h h1{ font-size:var(--fs-h1); font-weight:800; margin:0; letter-spacing:-.01em; }
+.page-h .desc{ color:var(--c-text-2); font-size:var(--fs-md); margin-top:5px; }
+
+/* ---------------- info-banner (기획서 전용: 메뉴위치/일정/정책/대상) ---------------- */
+.info-banner{
+  display:grid; grid-template-columns:repeat(4,1fr); gap:0;
+  border:var(--bd-w) solid var(--bd-color); border-radius:var(--radius-card);
+  background:var(--c-bg); box-shadow:var(--shadow-sm); overflow:hidden;
+}
+.info-banner .col{ display:flex; flex-direction:column; gap:3px; padding:10px 14px; border-right:1px solid var(--c-border); }
+.info-banner .col:last-child{ border-right:0; }
+.info-banner .lbl{ font-size:var(--fs-xs); color:var(--c-text-3); font-weight:700; letter-spacing:.04em; text-transform:uppercase; }
+.info-banner .val{ font-size:var(--fs-sm); color:var(--c-text); }
+.info-banner em{ font-style:normal; font-weight:700; color:var(--c-accent); }
+
+/* ---------------- card / panel ---------------- */
+.card{
+  background:var(--c-surface); border:var(--bd-w) solid var(--bd-color);
+  border-radius:var(--radius-card); box-shadow:var(--shadow-sm);
+}
+.card-head{
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  padding:10px 14px; border-bottom:var(--bd-w) solid var(--bd-color);
+}
+.card-title{ font-weight:700; font-size:var(--fs-base); flex:1; min-width:140px; }
+.card-title .sub{ color:var(--c-text-3); font-size:var(--fs-sm); font-weight:400; margin-left:6px; }
+.card-body{ padding:14px; }
+
+/* ---------------- page tabs (① / ② 페인 전환) ---------------- */
+.page-tabs{ display:flex; gap:0; border:var(--bd-w) solid var(--bd-color); border-radius:var(--radius-card); overflow:hidden; }
+.page-tab{
+  display:flex; align-items:center; gap:8px; padding:10px 16px; cursor:pointer;
+  border-right:1px solid var(--c-border); font-size:var(--fs-md); color:var(--c-text-2);
+}
+.page-tab:last-child{ border-right:0; }
+.page-tab .dot{ width:10px; height:10px; border-radius:50%; border:1.5px solid currentColor; flex:none; }
+.page-tab .sub{ color:var(--c-text-3); font-size:var(--fs-sm); }
+.page-tab .cnt{ margin-left:auto; font-weight:700; }
+.page-tab.on{ background:var(--c-accent); color:#fff; font-weight:700; }
+.page-tab.on .sub{ color:rgba(255,255,255,.8); }
+
+/* ---------------- toolbar / search / filter ---------------- */
+.toolbar{ display:flex; align-items:center; gap:12px; padding:14px 16px; border-bottom:var(--bd-w) solid var(--bd-color); flex-wrap:wrap; }
+.search{
+  display:flex; align-items:center; gap:8px; flex:1; min-width:280px;
+  border:1px solid var(--c-border-strong); border-radius:var(--radius-ctl); padding:6px 10px; background:var(--c-bg);
+}
+.search:focus-within{ border-color:var(--c-accent); box-shadow:0 0 0 3px var(--c-accent-weak); }
+.search input{ border:0; outline:0; font:inherit; font-size:var(--fs-md); flex:1; min-width:60px; background:transparent; color:var(--c-text); }
+.search input::placeholder{ color:var(--c-text-3); }
+
+/* ---------------- 폼 컨트롤 ---------------- */
+.field{ display:flex; gap:var(--sp-5); align-items:flex-start; padding:11px 0; }
+.field .label{ width:128px; flex:none; font-size:var(--fs-md); font-weight:500; color:var(--c-text-2); }
+.input,.textarea,.select{
+  border:1px solid var(--c-border-strong); border-radius:var(--radius-ctl); background:var(--c-bg);
+  color:var(--c-text); font:inherit; font-size:var(--fs-md); padding:0 12px; height:42px; transition:border-color var(--transition),box-shadow var(--transition);
+}
+.textarea{ height:auto; min-height:96px; padding:11px 12px; resize:vertical; line-height:1.55; }
+.input:hover,.select:hover,.textarea:hover{ border-color:var(--c-text-3); }
+.input:focus,.select:focus,.textarea:focus{ outline:0; border-color:var(--c-accent); box-shadow:0 0 0 3px var(--c-accent-weak); }
+
+/* ---------------- 버튼 ---------------- */
+.btn{
+  display:inline-flex; align-items:center; gap:7px; white-space:nowrap;
+  border:var(--bd-w) solid var(--c-border-strong); background:var(--c-bg); color:var(--c-text);
+  border-radius:var(--radius-ctl); padding:8px 14px; font-size:var(--fs-md); font-weight:600;
+}
+.btn:hover{ background:var(--c-hover); }
+.btn:disabled{ color:var(--c-text-3); cursor:not-allowed; }
+.btn.primary{ background:var(--c-accent); color:#fff; border-color:var(--c-accent); }
+.btn.dark{ background:var(--c-ink-btn); color:#fff; border-color:var(--c-ink-btn); }
+.btn.ghost{ border-color:transparent; background:transparent; }
+.btn.danger{ color:var(--c-crit); border-color:#f3c7c9; }
+.btn.danger:hover{ background:var(--c-crit-bg); }
+.btn.sm{ padding:5px 10px; font-size:var(--fs-sm); }
+
+/* segmented control */
+.seg{ display:inline-flex; border:var(--bd-w) solid var(--bd-color); border-radius:var(--radius-ctl); overflow:hidden; }
+.seg button{ border:0; background:transparent; padding:6px 14px; font:inherit; font-size:var(--fs-md); font-weight:600; color:var(--c-text-2); border-right:1px solid var(--c-border); }
+.seg button:last-child{ border-right:0; }
+.seg button.on{ background:var(--c-accent); color:#fff; }
+
+/* ---------------- 테이블 ---------------- */
+.tbl-wrap{ overflow-x:auto; }
+table.tbl{ width:100%; border-collapse:collapse; font-size:var(--fs-md); }
+.tbl thead th{
+  background:var(--c-head); color:var(--c-text-2); font-weight:700; font-size:var(--fs-sm);
+  text-align:left; padding:0 14px; height:42px; border-bottom:var(--bd-w) solid var(--c-border-strong);
+  white-space:nowrap; position:sticky; top:0;
+}
+.tbl tbody td{ padding:0 14px; height:var(--row-h); border-bottom:1px solid var(--c-border); vertical-align:middle; }
+.tbl tbody tr:hover{ background:var(--c-hover); }
+.tbl tbody tr.sel{ background:var(--c-sel); }
+.tbl tbody tr:last-child td{ border-bottom:0; }
+
+/* ---------------- 배지 / 태그 / 칩 ---------------- */
+.tag{
+  display:inline-flex; align-items:center; gap:5px; font-size:var(--fs-sm); font-weight:600;
+  border-radius:6px; padding:2px 8px; border:1px solid var(--c-border-strong); white-space:nowrap;
+  background:var(--c-bg); color:var(--c-text-2);
+}
+.tag.accent{ background:var(--c-info-bg); color:var(--c-accent); border-color:transparent; }
+.chip{
+  display:inline-flex; align-items:center; gap:6px; padding:2px 6px 2px 10px;
+  border:1px solid var(--c-border-strong); border-radius:var(--radius-pill);
+  background:var(--c-canvas); font-size:var(--fs-sm); color:var(--c-text-2); white-space:nowrap;
+}
+.chip .x{ cursor:pointer; color:var(--c-text-3); }
+.chip .x:hover{ color:var(--c-text); }
+/* 심각도 */
+.sev{ display:inline-flex; align-items:center; gap:6px; font-size:var(--fs-sm); font-weight:700; }
+.sev::before{ content:""; width:8px; height:8px; border-radius:50%; background:currentColor; }
+.sev.crit{ color:var(--c-crit); } .sev.warn{ color:var(--c-warn); }
+.sev.info{ color:var(--c-info); } .sev.ok{ color:var(--c-ok); }
+
+/* ---------------- 토글 / 체크박스 ---------------- */
+.tg{ width:38px; height:22px; border-radius:12px; background:#cfd4da; position:relative; cursor:pointer; transition:background var(--transition); flex:none; }
+.tg::after{ content:""; position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.25); transition:left var(--transition); }
+.tg.on{ background:var(--c-ok); } .tg.on::after{ left:18px; }
+.cbx{
+  width:16px; height:16px; border:1.5px solid var(--c-border-strong); border-radius:4px;
+  display:inline-flex; align-items:center; justify-content:center; cursor:pointer; background:var(--c-bg); vertical-align:middle;
+}
+.cbx.on,.cbx.ind{ background:var(--c-accent); border-color:var(--c-accent); color:#fff; }
+
+/* ---------------- 안내/노트 박스 ---------------- */
+.note{ display:flex; gap:9px; align-items:flex-start; border-radius:var(--radius-ctl); padding:12px 14px; font-size:var(--fs-sm); line-height:1.55; }
+.note.info{ background:var(--c-info-bg); color:var(--c-text-2); }
+.note.warn{ background:var(--c-warn-bg); border:1px solid var(--c-warn); color:var(--c-warn); }
+.note.danger{ background:var(--c-crit-bg); color:var(--c-crit); }
+
+/* ---------------- 페이지네이션 ---------------- */
+.tfoot{ display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-top:var(--bd-w) solid var(--c-border); font-size:var(--fs-md); color:var(--c-text-2); flex-wrap:wrap; gap:10px; }
+.pager{ display:flex; align-items:center; gap:4px; }
+.pager button{ min-width:30px; height:30px; border:1px solid transparent; background:transparent; border-radius:var(--radius-ctl); color:var(--c-text-2); font:inherit; }
+.pager button:hover{ background:var(--c-hover); }
+.pager button.on{ background:var(--c-accent); color:#fff; border-color:var(--c-accent); font-weight:700; }
+
+/* ---------------- 모달 ---------------- */
+.overlay{ position:fixed; inset:0; background:rgba(17,20,26,.42); display:flex; align-items:center; justify-content:center; z-index:var(--z-modal); }
+.modal{ background:var(--c-surface); border:var(--canvas-border); border-radius:var(--radius-card); box-shadow:var(--shadow-pop); width:480px; max-width:92vw; overflow:hidden; }
+.modal-h{ display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:var(--bd-w) solid var(--bd-color); }
+.modal-h b{ font-size:var(--fs-lg); }
+.modal-body{ padding:20px; }
+.modal-foot{ display:flex; justify-content:flex-end; gap:10px; padding:14px 20px; border-top:var(--bd-w) solid var(--bd-color); }
+
+/* ---------------- 영역 번호 라벨 (Description 의 1·2·3 과 연결) ---------------- */
+/* 명세 프레임 관례에 맞춰 빨간 동그라미. 색은 --area-no-c 로 교체 가능 */
+.area-no{
+  display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px;
+  background:var(--area-no-c,var(--c-crit)); color:#fff; font-size:var(--fs-xs); font-weight:700;
+  border-radius:50%; flex:none;
+}
+
+/* 인쇄 */
+@media print{
+  body{ background:#fff; }
+  .canvas{ margin:0; border:none; width:auto; }
+}
