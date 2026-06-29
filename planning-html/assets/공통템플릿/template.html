@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="hifi">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>[화면명] — 본문 목업</title>
+
+<!-- Pretendard (Hi-fi 테마용). Wireframe 만 쓸 땐 제거 가능 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css"/>
+
+<!-- 공통 토큰 → 공통 스타일 순서 고정 -->
+<link rel="stylesheet" href="tokens.css"/>
+<link rel="stylesheet" href="base.css"/>
+
+<style>
+  /* 화면 고유 스타일은 여기에만. 색/폰트/그림자는 토큰을 재사용할 것. */
+  .theme-switch{ position:fixed; top:10px; right:14px; z-index:99; display:flex; gap:6px; }
+</style>
+</head>
+<body>
+
+<!-- 개발 중 테마 미리보기 토글 (납품/캡처 시 제거) -->
+<div class="theme-switch no-print">
+  <button class="btn sm" onclick="document.documentElement.dataset.theme='hifi'">Hi-fi</button>
+  <button class="btn sm" onclick="document.documentElement.dataset.theme='wire'">Wireframe</button>
+</div>
+
+<!--
+  ┌──────────────────────────────────────────────────────────────┐
+  │  여기는 "본문영역"만 그린다. (= Figma 1440px 본문 프레임에 들어갈 화면)  │
+  │  · 상단 메타 헤더(Screen ID/Page Title/Author) = Figma 프레임 제공     │
+  │  · 우측 Description 컬럼 = Figma 프레임 제공                          │
+  │  → 둘 다 여기서 그리지 않는다.                                        │
+  │  · 빨간 동그라미 번호(.area-no)만 본문에 찍어 Description 과 연결한다.  │
+  └──────────────────────────────────────────────────────────────┘
+-->
+
+<!-- ===== 본문 캔버스 (1440px 고정) · data-screen-label = Figma 라벨 ===== -->
+<div class="screen" data-screen-label="01 [화면명]">
+
+  <!-- (선택) 화면 자체의 헤더: 제목 + 주요 액션. 명세 메타와는 별개 -->
+  <div class="screen-head">
+    <h1>[화면 제목]</h1>
+    <div class="screen-actions">
+      <button class="btn">취소</button>
+      <button class="btn primary">저장</button>
+    </div>
+  </div>
+
+  <div class="screen-body">
+
+    <!-- 영역 1: 검색/툴바 + 테이블 -->
+    <div class="area">
+      <span class="area-no">1</span>
+      <div class="card">
+        <div class="toolbar">
+          <div class="search"><input placeholder="검색…"/></div>
+          <button class="btn sm">필터</button>
+          <button class="btn primary sm">조회</button>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th>이름</th><th>상태</th><th>심각도</th><th>사용</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>예시 항목</td>
+                <td><span class="tag accent">활성</span></td>
+                <td><span class="sev crit">Critical</span></td>
+                <td><span class="tg on"></span></td>
+              </tr>
+              <tr class="sel">
+                <td>선택된 행</td>
+                <td><span class="tag">대기</span></td>
+                <td><span class="sev warn">Warning</span></td>
+                <td><span class="tg"></span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="tfoot">
+          <span>총 2건</span>
+          <div class="pager"><button>‹</button><button class="on">1</button><button>2</button><button>›</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 영역 2: 폼 -->
+    <div class="area">
+      <span class="area-no">2</span>
+      <div class="card">
+        <div class="card-head"><span class="card-title">기본 정보 <span class="sub">[설명]</span></span></div>
+        <div class="card-body">
+          <div class="field"><span class="label">이름</span><input class="input" style="flex:1" placeholder="[입력]"/></div>
+          <div class="field"><span class="label">설명</span><textarea class="textarea" style="flex:1" placeholder="[입력]"></textarea></div>
+          <div class="field"><span class="label">사용 여부</span><span class="tg on"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 영역 3: 안내 -->
+    <div class="area">
+      <span class="area-no">3</span>
+      <div class="note info" style="flex:1">ℹ️ [정책/제약 안내 문구]</div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
