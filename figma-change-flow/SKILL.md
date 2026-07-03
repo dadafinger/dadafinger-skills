@@ -109,7 +109,7 @@ disable-model-invocation: true
 - **페이지 골격**: Background+Shadow(3440) > [헤더 Container 3400×86(GRID)] + [콘텐츠 Container 3400(HORIZONTAL, gap 36): `1920px mockup column` + Desc 칼럼 704 + Desc 칼럼 704]
 - **Desc 칼럼 스타일**: 검은 풀폭 타이틀 바(Description/Appendix/Changelog, 흰 글자) · Intro 단락 + 버전 라인(`vX.X (YY'MM/DD) — 요약`)
 - **섹션** = [num 거터 50px: fs22 Inter Bold] + [body 654px: title-bar 44px(fs14 Inter Bold + 선택적 노란 배지 "NEW vX.X") + 불릿 TEXT 노드들]
-  - 불릿은 **노드 단위**: 주불릿 fs12 `· ` (622w) / 서브 fs11 `— ` 들여쓰기(606w). 덩어리 텍스트 한 노드에 몰아넣지 않는다 (가독성 지적의 주 원인)
+  - ⚠ 이 "노드 단위 불릿·fs12/서브 fs11"은 **구 3.0.x 템플릿 값** — 4.0 Description 본문 정본은 **플랫 인코딩 B(`setFlat`: 섹션 본문 1 TEXT 노드·fs24/lh36)**. 이 해부는 페이지 골격(3단·거터 50px·타이틀바 44px) 참고용이고 본문 서식은 setFlat을 따른다.
   - 섹션 번호·본문은 목업 내 ①②③… 마커와 상호 참조
 - **Changelog 행(ch-row)** = [v 셀 130px: `vX.X · YYMMDD` Roboto Mono Bold 11 + `추가/변경 · 작성자` fs10] + [변경 불릿 fs11 550w] — 제목만 있는 빈 Changelog 금지, 스펙 md 변경 이력에서 최소 2–3행 채울 것
 - 폰트: 예시 클론은 Inter/Roboto Mono 유지 (한글 fallback 렌더 정상 — 신규 생성 텍스트에만 Noto Sans KR 후보 로드 규칙 적용)
@@ -343,9 +343,9 @@ async function pickFont(){
 >
 > 이 절은 그 내용을 **Figma 노드에 실제로 그려넣는 렌더 기법(HOW)** 만 다룬다.
 
-### Description 렌더 기법 (Figma 네이티브 리스트)
+### Description 렌더 기법 (🔒 플랫 인코딩 B = 정본)
 
-> **🔧 검증된 헬퍼 코드 = [`assets/desc-render-helpers.js`](assets/desc-render-helpers.js) (붙여넣기용 SoT, Tier2 F1~F6 코드화).** 매 호출마다 헬퍼를 재작성하지 말고 이 파일에서 `setRich`/`resizeFixedSection`/`surgicalReplace`/`sampleRed`+`reddenPhrase`를 use_figma `code`에 붙여넣어 쓴다. 2026-06-30 집계 4종(04 DataZoom·03 캘린더·호스트·인스턴스) 실제 반영·스크린샷 검증 완료.
+> **🔧 검증된 헬퍼 코드 = [`assets/desc-render-helpers.js`](assets/desc-render-helpers.js) (붙여넣기용 SoT).** 매 호출마다 재작성하지 말고 이 파일에서 **`setFlat`(정본 B)**·`resizeFixedSection`·`surgicalReplace`·`sampleRed`+`reddenPhrase`를 use_figma `code`에 붙여넣어 쓴다. `setFlat`은 계층·강조를 진짜 글자/공백으로만 표현하고 노드 전체를 NONE/indent0/Noto Sans Regular로 1회 정규화 → `characters=` 덮어써도 무손상. ⚠ 구 `setRich`(네이티브 리스트 A)는 LEGACY(깨짐 위험, 신규 금지).
 >
 > **🔴 본문 폰트 = fs24 / lineHeight 36 (정본 표준, 호스트 `[node-id]`·미터링 이력 `[node-id]` 실측).** 아래 "상세 명세 페이지 해부"의 "주불릿 fs12·서브 fs11"은 **구 템플릿 값** — 4.0 집계/미터링 본문엔 fs24를 쓴다(fs12로 쓰면 같은 페이지의 다른 섹션과 크기 불일치 → 재작업).
 >
@@ -353,11 +353,10 @@ async function pickFont(){
 >
 > **섹션 reflow 분기**: ① `lm=NONE` 고정높이 섹션(04 DataZoom 구조) = `setRich` 후 `resizeFixedSection`(섹션/body/num 높이 = 56+본문h+24)로 직접 resize → 상위 VERTICAL auto-layout이 형제·카드 reflow. ② 전 체인 VERTICAL auto-layout HUG(03 캘린더 구조) = `setRich`만 하면 자동 reflow(resize 불필요).
 
-**계층(와이어프레임 기준):** 최상위 = **섹션 = 페이지 내 큰 레이아웃/기능 요소 단위**(와이어프레임을 보고 판단해 나눈 것 · 목업 ①②③ 마커 = 이 단위 · 섹션 제목 = 거터 번호 + title-bar 텍스트 노드, 리스트가 아님). 섹션 **본문**만 네이티브 리스트(3-depth)로:
-- depth 0 = `정책` / `항목` / `제약·케이스` 라벨 (`listOptions=NONE`, 불릿/번호 없음)
-- depth 1 = 항목 (다건 `ORDERED`→`1.2.3.` / 단건 `UNORDERED`→•)
-- depth 2 = 세부 설명 (다건 `ORDERED`→`a.b.c.` / 단건 •)
-- 수동 `· `/`  - ` 접두 금지. **반드시 `setRangeListOptions` 먼저 → `setRangeIndentation` 나중**에 적용한다. 순서가 반대면 listOptions가 indentation을 리셋해 항목이 한 단계 얕게(예: depth1이 depth0처럼) 박힌다 — 2026-06-18 검증. 라벨(depth0)이 `NONE`이라 첫 리스트 레벨인 depth1이 `1.`, depth2가 `a.`로 자동 렌더(문서상 `a.→i.`가 아니라 실제는 `1.→a.`).
+**계층(와이어프레임 기준):** 최상위 = **섹션 = 페이지 내 큰 레이아웃/기능 요소 단위**(목업 ①②③ 마커 = 이 단위 · 섹션 제목 = 거터 번호 + title-bar 텍스트 노드, 리스트 아님). 섹션 **본문**은 플랫 인코딩 마커로 한 TEXT 노드에 담는다(`setFlat`이 생성):
+- **L0 소제목** `■ `(공백0) · **L1** 열거 `1. `/진술 `• `(공백2) · **L2** 열거 `a. `/진술 `• `(공백5) · **L3** `• `(공백8).
+- **컴포넌트·분기 = 번호(`1.`/`a.`), 정책·제약·세부 = 글머리 `•`.** 들여쓰기는 U+0020만, 폭 0/2/5/8 고정. `a.`는 그룹마다 리셋. 마커 규약 상세 = [figma-desc-spec](../figma-desc-spec/SKILL.md) + `setFlat` 상수표.
+- ⚠ 계층을 진짜 글자/공백으로만 표현하므로 `setRangeListOptions`/`setRangeIndentation`(구 A)는 **쓰지 않는다**(노드 리셋 시 평면화돼 깨지던 원인 제거).
 
 **🔴 폰트 버그(더블클릭해야 보이는 현상) — 반드시 회피:**
 - 원인: `node.characters=` 로 덮어쓰면 **첫 글자 스타일이 전체에 적용**된다. 첫 세그먼트가 `Roboto`(라틴 전용·한글 글리프 없음)면 한글이 빈 글리프로 렌더돼 **정적 화면에선 안 보이고, 더블클릭(편집모드 OS 폴백)에서만 보임**.
@@ -366,27 +365,26 @@ async function pickFont(){
   ```js
   let KF={family:"Noto Sans",style:"Regular"};
   try{await figma.loadFontAsync(KF);}catch(e){KF={family:"Noto Sans KR",style:"Regular"};await figma.loadFontAsync(KF);}
-  // setRich(id, sections): sections=[[label,[item | [item,[sub...]] ...]], ...]
-  // 라벨 depth0 NONE / 항목 depth1 (다건 ORDERED·단건 UNORDERED) / 세부 depth2
-  // 본문 노드의 기존 세그먼트 폰트 전부 loadFontAsync → n.fontName=KF → n.characters=text → n.fontName=KF 재지정
-  // 줄마다 setRangeListOptions(s,e,{type}) 먼저 → setRangeIndentation(s,e,depth) 나중(반대 순서면 깨짐)
-  //        + setRangeFontSize(depth2=11, 그외 12) · 라벨은 setRangeFontName(Bold) · n.textAutoResize='HEIGHT'
+  // setFlat(id, blocks): blocks=[{label?, ol?, items:[{t, ol?, subs?}|"str"]}]  (정본 B)
+  // 본문 노드의 기존 세그먼트 폰트 전부 loadFontAsync → n.fontName=KF → n.characters=flatText → n.fontName=KF 재지정
+  // 계층은 ■/1./a./• 마커 + 공백(0/2/5/8) 글자로만 표현 (범위 서식 미의존 = 안 깨짐)
+  // 노드 전체 1회 setRangeListOptions(NONE)+setRangeIndentation(0)+fs24/lh36 · n.textAutoResize='HEIGHT'
   ```
 - 제목 텍스트도 같은 버그 대상 → `fixFont(id)`로 전체 범위 `Noto Sans` 재지정.
-- **🔴 신규 list 라인 indentation은 절대값 하드코딩 금지 (2026-06-19 검증):** 노드마다 들여쓰기 스케일이 다르고(`0/1/2` vs `0/3/4`) 반복 편집으로 **드리프트**한다. 신규 불릿을 `setRangeIndentation(s,e,2)`처럼 숫자로 박으면 스케일과 어긋나 중첩이 평탄화됨(`iii.CSV → iv.v.vi`로 자식이 부모 레벨로 뜸). **삽입 직전 같은 노드의 known-good 형제 라인 indentation을 `getStyledTextSegments(['indentation'])`로 읽어 부모=ind1·자식=ind2 값에 맞춘다**(위 순서 룰 listOptions→indentation 준수). 시각 검증으로 `1.2.3`이 부모 아래 들어갔는지 확인.
+- (구 A 전용 주의 — `setRangeIndentation` 스케일 드리프트 — 은 **플랫 B에서 폐기**: 들여쓰기가 실제 공백(0/2/5/8)이라 노드별 스케일 차이·드리프트가 없다.)
 
 **기타 렌더 규칙:**
 - 제목 텍스트엔 번호(①) 붙이지 않음 — 번호는 좌측 거터(Frame 17) 셀이 표시. 제목은 컴포넌트명만.
 - 본문 노드 `textAutoResize='HEIGHT'` + 섹션 프레임 VERTICAL hug → 작성 후 Description·Paper·페이지 높이 재정합(아래 "auto-layout / 텍스트 함정" 참조).
 - **섹션 reflow 레시피(`lm=NONE` 섹션이 VERTICAL auto-layout Description 프레임의 자식일 때 — 4.0 집계 페이지 구조, 2026-06-18 검증):** 섹션 프레임은 고정높이+`clip=true`이고 본문 텍스트만 HUG다 → 본문 재작성 후 **섹션 프레임 높이를 직접 계산해 resize**해야 reflow된다. `섹션h = 본문텍스트.y(=56) + 본문텍스트.height + (표 있으면 16+표h) + pad(~24)`; 같은 값으로 body 프레임도 resize. 그러면 부모 Description 프레임(`pri=AUTO`)이 자동 hug → 나머지 섹션·Appendix가 따라 내려옴. 좌측 목업/표 같은 비텍스트 자식은 본문 아래 `y`를 다시 계산해 배치.
-- **숨김 중복 노드 정리:** 덩어리 본문을 네이티브 리스트로 바꾸면 옛 `· `/`— ` 줄들이 `visible=false`로 남는다 → body 프레임에서 `findAll(n=>n.type==='TEXT'&&n.visible===false)`로 제거(단 `NEW` 배지 프레임 내부 텍스트는 제외). 가시 stray 노드는 먼저 `visible=false` 후 같은 패스로 삭제.
+- **숨김 중복 노드 정리:** 구 본문을 `setFlat`으로 재작성하면 옛 stray 줄들이 `visible=false`로 남을 수 있다 → body 프레임에서 `findAll(n=>n.type==='TEXT'&&n.visible===false)`로 제거(단 `NEW` 배지 프레임 내부 텍스트는 제외). 가시 stray 노드는 먼저 `visible=false` 후 같은 패스로 삭제.
 - 변경 마커는 본문, 이력은 Changelog 섹션(형식·내용 규칙은 figma-desc-spec).
 - **행간 = 폰트 크기 × 1.5 (사용자 확정 2026-06-23)**: 본문·Appendix 텍스트 `lineHeight={value: fontSize*1.5, unit:'PIXELS'}` (예: fs24 → 36px). 고정높이+`clip=true` 프레임은 행간 키운 뒤 잘리므로 **`clipsContent=false` + 본문 높이 재계산 reflow**(위 "섹션 reflow 레시피")로 전체 노출.
-- **거터 없는 설명란 = 온점 넘버링 (figma-desc-spec 번호 규칙)**: Intro 등 거터(번호 칼럼) 없는 설명 노드는 `setRangeListOptions(...,{type:'ORDERED'})`로 `1. 2.` 시작. 거터 있는 섹션은 거터 셀이 번호 표시 → 제목·본문 넘버링 없음.
+- **거터 없는 설명란 = 온점 넘버링 (figma-desc-spec 번호 규칙)**: Intro 등 거터(번호 칼럼) 없는 설명 노드는 리터럴 `1. 2. ` 접두로 시작(플랫 B). 거터 있는 섹션은 거터 셀이 번호 표시 → 제목·본문 넘버링 없음.
 - **Appendix Title 바 = `#999999` 배경 + 텍스트 `#212121` (standalone 집계 표준)**: 바(프레임) fill `rgb(153,153,153)`, 텍스트 fill `rgb(33,33,33)`. 텍스트를 #999로 두면 바에 묻히는 사고 주의.
 - **미결 사항 블록 = 페이지 맨 아래 (figma-desc-spec 미결 분리 규칙)**: `(미결)`을 섹션 본문에서 제거하고 Appendix 다음(Changelog 앞) 「미결 사항」 블록에 모은다. 기존 토큰(`U-10`/`T-11`/`V-12`/`F-16` 등) 유지, `[OI-N]` 신규 넘버링 금지. 블록도 본문과 동일 reflow 규칙 적용.
 
-**참고 예시 노드(SoT 형식, 2026-06-17 통일):** 알람 6화면 + 미터링 2화면 전부 네이티브 리스트 형식 적용 완료 — **node-id 단일 목록은 [`references/node-registry.md`](references/node-registry.md) §1-2** (여기 중복 나열하지 않음, 거기서 조회). **과거 `· `/`  - ` 수동 접두 + 첫세그먼트 폰트 재사용 방식은 폰트 버그를 유발한 반례.**
+**참고 예시 노드**: node-id 단일 목록은 [`references/node-registry.md`](references/node-registry.md) §1-2에서 조회(여기 중복 나열 안 함). ⚠ 알람·미터링 등 **과거 A(네이티브 리스트)로 친 노드는 정본 전환 시 `setFlat`으로 재렌더 대상**. (폰트 버그의 진짜 원인은 수동 접두가 아니라 첫 세그먼트 `Roboto` 폰트 재사용 — `setFlat`은 Noto Sans 강제로 회피하므로 수동 접두 자체는 정상.)
 
 ## 외부 SoT 사전 확인 — 필수 (2026-06-18 보강)
 

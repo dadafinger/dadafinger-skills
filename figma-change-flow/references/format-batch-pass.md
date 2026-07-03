@@ -45,7 +45,7 @@ md ### N  =  html .area-no N  =  Figma Description Section N(거터)  =  목업 
 | # | 항목 | PASS 조건 |
 |---|---|---|
 | F1 | 3단 골격 | 헤더행 + mockup 1920 + Desc 704(×2) |
-| F2 | Description 구조 | 거터 50px + title-bar 44px + **불릿 TEXT 노드 분리** (400자+ 단일 노드 = FAIL) |
+| F2 | Description 구조 | 거터 50px + title-bar 44px + **플랫 인코딩 본문(setFlat)** — 섹션 본문 1 TEXT 노드에 `■`/번호/`•`·공백 계층 (네이티브 리스트로 계층 표현 = 구 A, FAIL) |
 | F3 | 본문 블록 순서 | UI 요소(라벨 없이 `1.2.3.`) → 상태·케이스 → 제약 → **동작 정책(맨 뒤)** |
 | F4 | 4.0 통일 | Appendix/Changelog/Intro 버전라인/**인라인 ⭐vN** 숨김 또는 제거(전역 history 운영) |
 | F5 | 거터 G1–G6 | `1,2,3,…` 연속 · 중복 없음 · **목업 ①②③과 1:1** |
@@ -53,7 +53,7 @@ md ### N  =  html .area-no N  =  Figma Description Section N(거터)  =  목업 
 | F7 | 좌우 정합 | Description 용어·필드 = 목업 Field 라벨 (S6) |
 | F8 | 와이어 크롬 | LNB/GNB **문서형** — 파랑 active·블루그레이 배경 없음 · [`wireframe-chrome.md`](wireframe-chrome.md) |
 
-**렌더 HOW**: `figma-change-flow` Description 렌더 기법(`setRangeListOptions`·font load·높이 hug).
+**렌더 HOW**: `figma-change-flow/assets/desc-render-helpers.js` `setFlat`(플랫 인코딩 정본)·font load·높이 hug. ⚠ 구 `setRangeListOptions`(A)는 폐기.
 
 ---
 

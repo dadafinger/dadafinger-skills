@@ -9,16 +9,19 @@
 //   - 컨텍스트가 매 호출 초기화되므로 폰트 로드 블록을 매번 포함할 것.
 //   - skillNames에 "figma-use"(리소스면 "resource:figma-use") 포함.
 //
-// 표준 (호스트 [node-id] · 미터링 이력 [node-id] 실측 = 정본):
-//   - 본문 폰트 = fs24 / lineHeight 36 (fs×1.5).  ⚠ figma-change-flow 해부의
-//     "주불릿 fs12·서브 fs11"은 구 템플릿 값 — 4.0 집계/미터링 본문엔 fs24.
-//   - 폰트 = Noto Sans Regular(라벨 Bold). Roboto/Inter는 한글 미렌더 → "더블클릭
-//     해야 보이는" 버그(F1). characters= 전후로 Noto Sans 전체 강제 지정으로 회피.
-//   - 네이티브 리스트 3-depth: depth0=블록 라벨(정책/상태·케이스/제약/동작 정책,
-//     NONE·Bold) · depth1=항목(다건 ORDERED→1. / 단건 UNORDERED→•) · depth2=세부.
-//   - 「UI 요소」 블록은 라벨 없이 depth1 넘버링부터 시작(label:null).
-//   - setRangeListOptions 먼저 → setRangeIndentation 나중 (반대면 깨짐, F5).
-//   - 본문 = textAutoResize='HEIGHT' + 고정폭 (폭 0 붕괴 회피, F4).
+// 🔒 정본 = 플랫 인코딩(B) → setFlat()  (2026-06-30 확정, "방법 불문 안 깨짐").
+//   계층·강조를 전부 "진짜 글자/공백"으로 표현하고 범위 서식(listOptions·indentation)에
+//   의존하지 않는다 → characters= 통째 덮어써도 구조 무손상. 옛 네이티브 리스트(A) setRich는
+//   파일 하단에 LEGACY로 격리(깨짐 위험 — 신규 사용 금지, 과거 노드 비교용만).
+//
+// 마커 규약 (정본):  소제목 ■ (pad0) · L1 열거 1.2.3./진술 • (pad2) ·
+//   L2 열거 a.b.c./진술 • (pad5) · L3 • (pad8).  들여쓰기 U+0020만, 폭 0/2/5/8 고정.
+//   글머리 = • (U+2022), 라벨 강조 = 선두토큰 뒤 — (em dash).  노드 전체 NONE/indent0/Regular.
+//
+// 공통 (호스트 [node-id] · 미터링 이력 [node-id] 실측 = 정본):
+//   - 본문 폰트 = Noto Sans Regular fs24 / lineHeight 36 (fs×1.5). Bold 안 씀(■ + — 로 강조).
+//   - Roboto/Inter는 한글 미렌더("더블클릭해야 보임" 버그) → characters= 전후 Noto Sans 강제.
+//   - 본문 = textAutoResize='HEIGHT' + 고정폭 (폭 0 붕괴 회피).
 // =============================================================================
 
 // ── 폰트 셋업 (매 호출 포함) ────────────────────────────────────────────────
@@ -35,7 +38,67 @@ async function loadExisting(n) {
   }
 }
 
-// ── setRich: 블록 모델 → 네이티브 3-depth 리스트로 본문 텍스트 노드 재작성 ──
+// ── 🔒 setFlat (정본 B): 블록 모델 → 플랫 인코딩 텍스트로 본문 노드 재작성 ──────
+// 마커는 전부 "진짜 글자/공백". 노드 전체를 NONE/indent0/Regular로 1회 정규화하므로
+// 이후 characters= 로 통째 덮어써도 계층이 무너지지 않는다(= 안 깨짐).
+const FLAT = {
+  pad: [0, 2, 5, 8],          // depth별 선두 공백 수 (L0/L1/L2/L3)
+  head: "■ ",            // ■  소제목 (L0)
+  bullet: "• ",          // •  진술형 글머리 / L3
+  ord(depth, i) {             // 열거 카운터: L1=1. / L2=a.b.c. / 그 외 글머리
+    if (depth === 1) return (i + 1) + ". ";
+    if (depth === 2) return String.fromCharCode(97 + i) + ". "; // a,b,c…(그룹마다 리셋)
+    return this.bullet;
+  },
+};
+
+// blocks: [{ label?:string, ol?:bool, items:[ {t, ol?, subs?} | "문자열" ] }]
+//   label   → ■ 소제목 줄 (없으면 줄 생략 = 「UI 요소」형 블록)
+//   block.ol→ items 를 1.2.3. (true=열거/컴포넌트·분기) / • (false·기본=진술/정책·제약)
+//   item.ol → 그 item의 subs 를 a.b.c. (true) / • (false·기본);  L3 이하는 항상 •
+//   subs    → ["문자열"] 또는 [{t, subs}] (L3까지)
+// 반환: 재작성 후 노드 height (섹션 reflow 계산용)
+async function setFlat(id, blocks, opts) {
+  const FS = (opts && opts.fs) || 24;
+  const LH = (opts && opts.lh) || 36;
+  const n = await figma.getNodeByIdAsync(id);
+  await loadExisting(n);
+  const out = [];
+  for (let bi = 0; bi < blocks.length; bi++) {
+    const b = blocks[bi];
+    if (bi > 0) out.push("");                                  // 소제목 묶음 사이 빈 줄 1개
+    if (b.label != null) out.push(FLAT.head + b.label);
+    const items = b.items.map(it => typeof it === 'string' ? { t: it } : it);
+    for (let ii = 0; ii < items.length; ii++) {
+      const it = items[ii];
+      const m1 = b.ol ? FLAT.ord(1, ii) : FLAT.bullet;
+      out.push(" ".repeat(FLAT.pad[1]) + m1 + it.t);
+      const subs = (it.subs || []).map(s => typeof s === 'string' ? { t: s } : s);
+      for (let si = 0; si < subs.length; si++) {
+        const s = subs[si];
+        const m2 = it.ol ? FLAT.ord(2, si) : FLAT.bullet;
+        out.push(" ".repeat(FLAT.pad[2]) + m2 + s.t);
+        for (const d of (s.subs || [])) {                      // L3 항상 •
+          out.push(" ".repeat(FLAT.pad[3]) + FLAT.bullet + (typeof d === 'string' ? d : d.t));
+        }
+      }
+    }
+  }
+  n.fontName = KF; n.characters = out.join('\n'); n.fontName = KF;  // 한글 폰트 강제 전후
+  n.textAutoResize = 'HEIGHT';
+  const L = n.characters.length;                               // 노드 전체 1회 정규화
+  n.setRangeListOptions(0, L, { type: 'NONE' });
+  n.setRangeIndentation(0, L, 0);
+  n.setRangeFontSize(0, L, FS);
+  n.setRangeLineHeight(0, L, { unit: 'PIXELS', value: LH });
+  n.setRangeFontName(0, L, KF);
+  return n.height;
+}
+
+// ── ⚠ LEGACY A — setRich: 네이티브 3-depth 리스트 (깨짐 위험, 신규 사용 금지) ────
+// 2026-06-30 정본이 setFlat(B)로 바뀌기 전 방식. characters= 재적용·노드 리셋 시
+// 범위 서식(listOptions·indentation)이 평면화돼 들여쓰기가 사라지는 알려진 버그.
+// 과거에 A로 친 노드를 비교/이관할 때만 참조.  blocks 모델은 setFlat과 호환.
 // blocks: [{ label: string|null, items: [ { t: string, subs?: string[] } | "문자열" ] }]
 //   - label=null  → 「UI 요소」 블록(라벨 줄 없이 depth1부터)
 //   - items 다건 → ORDERED(1.2.3), 단건 → UNORDERED(•) / subs도 동일 규칙
@@ -131,25 +194,27 @@ async function reddenPhrase(id, phrase, red) {
 }
 
 // =============================================================================
-// 사용 예시 (집계 보고서 4.0, 2026-06-30 검증)
+// 사용 예시 (집계 보고서 4.0 · 정본 setFlat B)
 // -----------------------------------------------------------------------------
-// // (A) lm=NONE 고정높이 섹션 (04 DataZoom): setRich → resize
-// const h = await setRich('[node-id]', [
-//   { label: null, items: [
+// // (A) lm=NONE 고정높이 섹션 (04 DataZoom): setFlat → resize
+// //     라벨 없는 「UI 요소」 블록은 ol:true(컴포넌트 열거) → 1.2.3.
+// const h = await setFlat('[node-id]', [
+//   { ol: true, items: [                     // 구성요소 → 1. 2.
 //     { t: "모달 헤더 — 「차트 확대」 타이틀 + 대상 지표(그룹 > 세부 지표) + [✕ 닫기]" },
-//     { t: "조회 조건 표기 — STEP · 수집 기간 상단 읽기 전용 (본 화면 ③ 조회 조건 상속)" } ] },
-//   { label: "제약", items: ["조회 조건은 모달에서 변경 불가 — 닫고 본 화면에서 재조회"] },
+//     { t: "조회 조건 표기 — STEP · 수집 기간 상단 읽기 전용 (본 화면 조회 조건 상속)" } ] },
+//   { label: "제약",     items: ["조회 조건은 모달에서 변경 불가 — 닫고 본 화면에서 재조회"] }, // 진술 → •
 //   { label: "동작 정책", items: ["[확대] 클릭 시 풀스크린 오버레이로 진입 · 단일 지표 전용"] },
 // ]);
 // await resizeFixedSection('[node-id]', '[node-id]', '[node-id]', h);
 //
-// // (B) VERTICAL auto-layout HUG 섹션 (03 캘린더): setRich만 (자동 reflow)
-// const subs = ["일자 단위 선택 · 시간 선택 UI 없음 · 수집 시작 00시 / 종료 23시 자동 고정"];
-// await setRich('[node-id]', [
-//   { label: null, items: ["RangePicker — 시작 요일 일요일(Sun)"] },
-//   { label: "Step별 캘린더 정의", items: [
-//     { t: "hourly/daily — YYYY-MM-DD ~ YYYY-MM-DD 형식", subs } ] },
-//   { label: "동작 정책", items: ["기간 선택 완료 시에만 [조회] 활성"] },
+// // (B) VERTICAL auto-layout HUG 섹션 (03 캘린더): setFlat만 (자동 reflow)
+// //     분기 있는 항목은 item.ol:true → subs 가 a.b.c.
+// await setFlat('[node-id]', [
+//   { ol: true, items: ["RangePicker — 시작 요일 일요일(Sun)"] },
+//   { label: "Step별 캘린더 정의", ol: true, items: [
+//     { t: "hourly — 시간 단위", subs: ["YYYY-MM-DD HH ~ 형식"] },   // a.
+//     { t: "daily — 일 단위",   subs: ["YYYY-MM-DD ~ 형식", "수집 시작 00시 / 종료 23시 고정"] } ] }, // b.
+//   { label: "동작 정책", items: ["기간 선택 완료 시에만 [조회] 활성"] },          // •
 // ]);
 //
 // // (C) 동일 문구 전파: 정본 문장을 여러 화면에 동일하게
