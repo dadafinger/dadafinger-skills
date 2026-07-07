@@ -5,12 +5,14 @@ name: kr-manual-format-review
 description: >
   한국어 Product 매뉴얼(.docx)의 서식 일관성을 검수하고 원본에서 바로 수정한다.
   신규 섹션 추가 후 "서식 검수해줘", "매뉴얼 서식 안 맞는 거 있는지 봐줘",
-  "서식 통일해줘" 등을 언급하거나, 매뉴얼 docx와 함께 서식/스타일 점검 요청이
-  오면 이 스킬을 사용한다. 검수 전용(MODE A)과 검수+수정(MODE B)을 지원한다.
+  "서식 통일해줘", "이미지 크기 맞춰줘", "표 크기 통일해줘" 등을 언급하거나,
+  매뉴얼 docx와 함께 서식/스타일/이미지·표 크기 점검 요청이 오면 이 스킬을 사용한다.
+  검수 전용(MODE A)과 검수+수정(MODE B), 이미지·표 폭 크기 일관성 정규화를 지원한다.
 metadata:
   type: skill
   status: active
   script: scripts/format_check.py
+  script_size: scripts/size_normalize.py
   origin_session: 3.0.6 HA 관리 섹션 서식 검수 (2026-06-11)
 ---
 
@@ -81,6 +83,42 @@ paragraph 덤프를 떠서 확인한다.
 ### 6. 내용 복사 흔적
 - [ ] 타 섹션 잔재 단어 (`스택`, `인스턴스` 등 해당 메뉴와 무관한 대상어)
 - [ ] 본문 메뉴 경로가 실제 LNB와 일치 (`[HA 관리 > HA 설정]`)
+
+### 7. 이미지·표 크기 일관성 (전용 스크립트 `size_normalize.py`)
+- [ ] 넓은 스크린샷 폭이 페이지마다 제각각(6.18/6.22/6.27/6.32in…)이면 **단일 정본 폭**으로 통일.
+      마우스로 대충 드래그해 넣은 흔적 → 본문 좌우 가장자리가 들쭉날쭉해 보이는 원인
+- [ ] 표 폭도 같은 정본 폭으로 통일하면 이미지·표 가장자리가 한 줄로 정렬됨
+- [ ] **비율/열 비율은 보존**하고 폭만 스냅 (이미지=가로세로비 유지, 표=열 비율 유지)
+- [ ] 아이콘·작은 인라인 이미지, auto(내용맞춤) 표, 들여쓰기 표는 **의도적 크기라 제외**
+
+## 이미지·표 크기 정규화 (size_normalize.py)
+
+폭 드리프트를 정본 폭 하나로 스냅한다. **비율 유지**(이미지=가로세로비, 표=열 비율),
+3층 동기(이미지 `wp:extent`+xfrm `a:ext` / 표 `tblW`+`gridCol`+셀 `tcW`).
+
+```bash
+# 1) analyze — 읽기전용 분포·정본폭 권고 (수정 없음)
+python3 scripts/size_normalize.py --file "매뉴얼.docx"
+
+# 2) apply — 백업(.bak.docx) 후 정본폭으로 통일 (이미지+표)
+python3 scripts/size_normalize.py --file "매뉴얼.docx" --apply
+#   정본폭 자동 = 이미지 최빈 폭. 표는 같은 inch를 twip으로 환산해 이미지와 정렬.
+
+# 옵션
+python3 scripts/size_normalize.py --file "M.docx" --apply --width-in 6.2701  # 폭 명시
+python3 scripts/size_normalize.py --file "M.docx" --apply --scope images     # 이미지만
+python3 scripts/size_normalize.py --file "M.docx" --apply --scope tables --table-scope 2col
+```
+
+기본 정책(스크립트 내장):
+- 이미지: `--min-img-in`(기본 5.5in) 이상만 스냅. 미만은 아이콘/인라인으로 보고 제외.
+  스냅 결과 높이가 `--max-img-in`(기본 9.5in) 초과면 페이지 넘침으로 보고 제외.
+- 표: 고정폭(dxa)·비들여쓰기만 스냅. `auto`(내용맞춤)·`tblInd>0`(들여쓰기) 표는 제외+리포트.
+  열 비율은 표별로 보존하고 전체폭만 스냅(열폭 합계 = 전체폭 정확 일치).
+- 단위: 이미지 EMU(914400/in) · 표 twip(1440/in) · 1 twip=635 EMU. 이미지 정본폭 inch를
+  표 twip으로 환산해 **이미지와 표를 같은 폭**으로 맞춤(문서 전체 가장자리 정렬).
+- **가정**: 표 중첩 없음(비탐욕 `<w:tbl>` 매칭). 적용 전 analyze로 분포 확인 권장.
+- **멱등**: 이미 정본폭인 항목은 건드리지 않음(재실행 안전).
 
 ## MODE B — 수정 절차
 
